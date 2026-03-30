@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <meta charset="UTF-8">
+    <title>MCPE PixelArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* bg */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px 20px; 
+            box-sizing: border-box;
+            background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* estilo liquid */
+        .controls, .visualizer { 
+            background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            border-radius: 24px; 
+            padding: 35px; 
+            width: 100%;
+            max-width: 500px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); 
+            text-align: center; 
+            margin-bottom: 30px;
+            box-sizing: border-box;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .controls:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        h2, h3 { 
+            color: #007aff; 
+            margin-top: 0;
+            margin-bottom: 25px; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        label { 
+            display: block; 
+            margin-top: 18px; 
+            font-weight: 600; 
+            color: #444; 
+            text-align: left;
+            font-size: 0.95em;
+            padding-left: 5px;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            margin-top: 8px; 
+            border-radius: 14px; 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+            background: rgba(255, 255, 255, 0.5); 
+            color: #000; 
+            box-sizing: border-box; 
+            outline: none;
+            font-size: 1em;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            background: #007aff;
+            border: none; 
+            border-radius: 16px; 
+            color: white; 
+            font-weight: 700; 
+            cursor: pointer; 
+            font-size: 1.1em; 
+            margin-top: 30px; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            letter-spacing: -0.3px;
+        }
+
+        button:hover {
+            background: #0063cc;
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+        }
+
+        .info { 
+            font-size: 0.9em; 
+            color: #555; 
+            margin-top: 30px; 
+            text-align: left; 
+            background: rgba(0, 0, 0, 0.03); 
+            padding: 20px; 
+            border-radius: 16px; 
+            line-height: 1.6;
+        }
+
+        .info b {
+            color: #000;
+        }
+
+        .visualizer { 
+            display: none; 
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        canvas { 
+            width: 100%; 
+            height: auto; 
+            image-rendering: pixelated; 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+            border-radius: 12px;
+            background: #f0f0f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .donate-btn { 
+            display: block; 
+            width: 100%; 
+            padding: 14px; 
+            background: linear-gradient(135deg, rgba(255, 159, 10, 0.9), rgba(255, 69, 58, 0.9)); /* Colores cálidos iOS */
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 16px; 
+            color: white; 
+            font-weight: 700; 
+            text-decoration: none; 
+            font-size: 1em; 
+            margin-top: 15px; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+            box-sizing: border-box;
+        }
+
+        .donate-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(255, 69, 58, 0.5);
+        }
+
+        .donate-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(255, 69, 58, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <h2>Pixel Art Export</h2>
+    
+    <label>1. Imagen para el Pack:</label>
+    <input type="file" id="upload" accept="image/*">
+
+    <label>2. Nombre del Proyecto (Sin espacios):</label>
+    <input type="text" id="packName" value="MiPixelArt">
+
+    <label>3. Orientación de la imagen:</label>
+    <select id="axis">
+        <option value="vertical">PARADO (Pared vertical hacia arriba)</option>
+        <option value="horizontal">ACOSTADO (Plano en el suelo)</option>
+    </select>
+
+    <label>4. Nombre de la Función (Comando):</label>
+    <input type="text" id="functionName" value="dibujar_todo">
+
+    <label>5. Pixeles:</label>
+    <input type="number" id="maxWidth" value="64">
+
+    <button onclick="buildEverything()">GENERAR .MCPACK</button>
+    
+    <div class="info">
+        <b>Instrucciones:</b><br>
+        • Doble clic al archivo para instalar.<br>
+        • Activa <b>"Funciones de creador de vacaciones"</b> en tu mundo.<br>
+        • Ejecuta en el chat: <b style="color:#007aff">/function <b style="color:#00000034"> [nombre que pusiste en:]</b><span id="cmdNameDisplay">dibujar_todo</span></b><br>
+        • De igual manera te aparecera el nombre una vez puesto /function [nombre del archivo]
+    </div>
+    <br>
+    <label>Apoyame! nwn:</label>
+    <a href="https://ko-fi.com/yutoflxp" target="_blank" class="donate-btn">Apoyar el proyecto</a>
+</div>
+
+<div id="visBox" class="visualizer">
+    <h3>Miniatura del Pack </h3>
+    <canvas id="canvasThumb"></canvas>
+</div>
+
+<canvas id="canvasHidden" style="display:none;"></canvas>
+
+<script>
+
+document.getElementById('functionName').addEventListener('input', function() {
+    let fName = this.value.replace(/\s+/g, '_').toLowerCase() || 'dibujar_todo';
+    document.getElementById('cmdNameDisplay').innerText = fName;
+});
+
+async function buildEverything() {
+    const file = document.getElementById('upload').files[0];
+    const pName = document.getElementById('packName').value.replace(/\s+/g, '_') || "Pack";
+    const fName = document.getElementById('functionName').value.replace(/\s+/g, '_').toLowerCase() || "dibujar_todo";
+    const axis = document.getElementById('axis').value;
+    
+    if (!file) return alert("Sube una imagen primero");
+
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    
+    img.onload = async () => {
+        const canvasH = document.getElementById('canvasHidden');
+        const ctxH = canvasH.getContext('2d');
+        const maxWidth = parseInt(document.getElementById('maxWidth').value);
+        const scale = maxWidth / img.width;
+        
+        canvasH.width = maxWidth;
+        canvasH.height = Math.floor(img.height * scale);
+        ctxH.drawImage(img, 0, 0, canvasH.width, canvasH.height);
+        
+        //1. GENERAR MINIATURA 
+        const canvasT = document.getElementById('canvasThumb');
+        const ctxT = canvasT.getContext('2d');
+        canvasT.width = 64; canvasT.height = 64; // Tamaño estándar Bedrock
+        ctxT.fillStyle = "#1e1e1e"; ctxT.fillRect(0,0,64,64);
+        ctxT.drawImage(img, 0, 0, 64, 64);
+        document.getElementById('visBox').style.display = 'block';
+
+        // 2. PROCESAR PÍXELES
+        const pixels = ctxH.getImageData(0, 0, canvasH.width, canvasH.height).data;
+        let allCommands = [];
+        let currentPart = "";
+        let count = 0;
+        const LIMIT = 8000; // Límite de comandos por función para evitar cortes
+
+        const paleta = [
+            {id:"concrete 0", c:[240,240,240]}, {id:"concrete 15", c:[20,20,20]},
+            {id:"concrete 1", c:[220,100,30]}, {id:"concrete 14", c:[180,40,40]},
+            {id:"concrete 11", c:[40,60,180]}, {id:"concrete 4", c:[220,220,40]}
+        ];
+
+        for (let y = 0; y < canvasH.height; y++) {
+            for (let x = 0; x < canvasH.width; x++) {
+                const i = (y * canvasH.width + x) * 4;
+                if (pixels[i+3] > 128) {
+                    const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+                    let best = paleta[0];
+                    let minD = Infinity;
+                    for(const p of paleta) {
+                        const d = Math.sqrt((r-p.c[0])**2 + (g-p.c[1])**2 + (b-p.c[2])**2);
+                        if(d < minD) { minD = d; best = p; }
+                    }
+
+                    if(axis === "vertical") {
+                        currentPart += `setblock ~${x} ~${canvasH.height - y} ~ ${best.id}\n`;
+                    } else {
+                        currentPart += `setblock ~${x} ~-1 ~${y} ${best.id}\n`;
+                    }
+                    
+                    count++;
+                    if(count >= LIMIT) {
+                        allCommands.push(currentPart);
+                        currentPart = ""; count = 0;
+                    }
+                }
+            }
+        }
+        if(currentPart) allCommands.push(currentPart);
+
+        //3. zip to mcpak (.MCPACK)
+        const zip = new JSZip();
+        
+        // Miniatura
+        const thumbBlob = await new Promise(res => canvasT.toBlob(res, 'image/png'));
+        zip.file("pack_icon.png", thumbBlob);
+
+        // Manifest
+        const manifest = {
+            "format_version": 2,
+            "header": {
+                "name": pName,
+                "description": `Pixel Art (${axis}) con ${allCommands.length} partes`,
+                "uuid": self.crypto.randomUUID(),
+                "version": [1, 0, 0],
+                "min_engine_version": [1, 16, 0]
+            },
+            "modules": [{"type": "data", "uuid": self.crypto.randomUUID(), "version": [1, 0, 0]}]
+        };
+        zip.file("manifest.json", JSON.stringify(manifest, null, 4));
+
+        // Funciones
+        const folder = zip.folder("functions");
+        let master = "";
+        allCommands.forEach((cmd, index) => {
+            folder.file(`p${index}.mcfunction`, cmd);
+            master += `function p${index}\n`;
+        });
+        
+        // Se utiliza el nombre personalizado para el archivo de la función principal
+        folder.file(`${fName}.mcfunction`, master);
+
+        const blob = await zip.generateAsync({type:"blob"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${pName}.mcpack`;
+        a.click();
+    };
+}
+</script>
+</body>
+</html>
